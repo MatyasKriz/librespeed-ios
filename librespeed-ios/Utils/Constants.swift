@@ -13,11 +13,18 @@ struct Constants {
     static let overheadCompensationFactor = 1.06
 
     struct Download {
-        static let size = 100
+        static let size = 30
     }
 
     struct Upload {
-        static let size = 20
+        static let size = 5
         static let sizeBytes = size * bytesPerMegaByte
+        static let attempts = 1
+        static let requestPadding = 0.0
+    }
+
+    struct Ping {
+        static let attempts = 10
+        static let requestPadding = 0.075
     }
 }

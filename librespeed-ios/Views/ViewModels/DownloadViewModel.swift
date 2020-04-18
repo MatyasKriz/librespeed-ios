@@ -22,6 +22,10 @@ final class DownloadViewModel: NSObject, ObservableObject {
     private let queue = OperationQueue()
 
     func startTest(completionHandler: (() -> Void)? = nil) throws {
+        DispatchQueue.main.async {
+            self.value = 0
+        }
+
         session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: queue)
         guard let url = URL(string: "https://fi.openspeed.org/garbage.php"),
             var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw DownloadTestError.invalidUrl }

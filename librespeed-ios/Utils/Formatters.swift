@@ -15,4 +15,18 @@ struct Formatters {
         formatter.minimumFractionDigits = 1
         return formatter
     }()
+
+    static let secondFormatter: NumberFormatter = {
+        var formatter = NumberFormatter()
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 0
+        return formatter
+    }()
+
+    static let millisecondFormatter: NumberFormatter = {
+        var formatter = NumberFormatter()
+        formatter.maximumFractionDigits = 0
+        formatter.alwaysShowsDecimalSeparator = false
+        return formatter
+    }()
 }

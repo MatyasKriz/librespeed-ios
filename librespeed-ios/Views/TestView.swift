@@ -11,6 +11,8 @@ import Combine
 
 struct TestView: View {
     @ObservedObject
+    private var ping = PingViewModel()
+    @ObservedObject
     private var download = DownloadViewModel()
     @ObservedObject
     private var upload = UploadViewModel()
@@ -28,6 +30,17 @@ struct TestView: View {
 
             Text("Testing..")
                 .font(.largeTitle)
+
+            HStack(alignment: .top, spacing: 44) {
+                VStack {
+                    Text("Ping")
+                    format(ping: ping.ping)
+                }
+                VStack {
+                    Text("Jitter")
+                    format(ping: ping.jitter)
+                }
+            }.padding()
 
             HStack(alignment: .top, spacing: 44) {
                 VStack {
@@ -49,8 +62,31 @@ struct TestView: View {
     }
 
     private func startTests() {
-        try! download.startTest {
-            try! self.upload.startTest()
+        try! self.ping.startTest() {
+            try! self.download.startTest {
+                try! self.upload.startTest()
+            }
+        }
+    }
+
+    private func format(ping: Double) -> Group<Text> {
+        let result: (value: String, unit: String)?
+        if ping >= 1 {
+            result = Formatters.secondFormatter.string(for: ping).map { ($0, "s") }
+        } else {
+            let milliseconds = ping * 1000
+            result = Formatters.millisecondFormatter.string(for: milliseconds).map { ($0, "ms") }
+        }
+
+        if let result = result {
+            return Group {
+                Text(result.value).font(.title) +
+                    Text(result.unit)
+            }
+        } else {
+            return Group {
+                Text("N/A").font(.title)
+            }
         }
     }
 }

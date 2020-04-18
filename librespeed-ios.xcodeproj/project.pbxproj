@@ -18,6 +18,7 @@
 		685B80B82437A4F2002BF820 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 685B80B62437A4F2002BF820 /* LaunchScreen.storyboard */; };
 		685B80C02437AD88002BF820 /* DownloadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 685B80BF2437AD88002BF820 /* DownloadViewModel.swift */; };
 		686DD1C8243A0C9C00402F7D /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686DD1C7243A0C9C00402F7D /* Formatters.swift */; };
+		68F05993244466FF000C6C16 /* PingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F05992244466FF000C6C16 /* PingViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		685B80B92437A4F2002BF820 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		685B80BF2437AD88002BF820 /* DownloadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadViewModel.swift; sourceTree = "<group>"; };
 		686DD1C7243A0C9C00402F7D /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		68F05992244466FF000C6C16 /* PingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +64,7 @@
 			children = (
 				685B80BF2437AD88002BF820 /* DownloadViewModel.swift */,
 				6835D89B24430D60005E7297 /* UploadViewModel.swift */,
+				68F05992244466FF000C6C16 /* PingViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				68F05993244466FF000C6C16 /* PingViewModel.swift in Sources */,
 				6835D89C24430D60005E7297 /* UploadViewModel.swift in Sources */,
 				686DD1C8243A0C9C00402F7D /* Formatters.swift in Sources */,
 				685B80AC2437A4F2002BF820 /* AppDelegate.swift in Sources */,
