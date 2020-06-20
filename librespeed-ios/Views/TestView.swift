@@ -11,18 +11,11 @@ import Combine
 
 struct TestView: View {
     @ObservedObject
-    private var ping = PingViewModel()
-    @ObservedObject
-    private var download = DownloadViewModel()
-    @ObservedObject
-    private var upload = UploadViewModel()
+    private var viewModel: TestViewModel
 
-    @State
-    private var downloadLimit = 100.0
-    @State
-    private var uploadLimit = 100.0
-
-    private var cancelables: Set<AnyCancellable> = []
+    init(viewModel: TestViewModel) {
+        self.viewModel = viewModel
+    }
 
     var body: some View {
         VStack {
@@ -34,21 +27,21 @@ struct TestView: View {
             HStack(alignment: .top, spacing: 44) {
                 VStack {
                     Text("Ping")
-                    format(ping: ping.ping)
+                    format(ping: viewModel.ping)
                 }
                 VStack {
                     Text("Jitter")
-                    format(ping: ping.jitter)
+                    format(ping: viewModel.jitter)
                 }
             }.padding()
 
             HStack(alignment: .top, spacing: 44) {
                 VStack {
-                    ArcProgressBar(value: download.value, limit: downloadLimit)
+                    ArcProgressBar(value: viewModel.download, limit: viewModel.downloadLimit)
                     Text("Mbps").font(.system(size: 20))
                 }
                 VStack {
-                    ArcProgressBar(value: upload.value, limit: uploadLimit)
+                    ArcProgressBar(value: viewModel.upload, limit: viewModel.uploadLimit)
                     Text("Mbps").font(.system(size: 20))
                 }
             }.layoutPriority(1)
@@ -62,63 +55,21 @@ struct TestView: View {
     }
 
     private func startTests() {
-        try! self.ping.startTest() {
-            try! self.download.startTest {
-                try! self.upload.startTest()
-            }
-        }
+        viewModel.test()
     }
 
     private func format(ping: Double) -> Group<Text> {
-        let result: (value: String, unit: String)?
-        if ping >= 1 {
-            result = Formatters.secondFormatter.string(for: ping).map { ($0, "s") }
-        } else {
-            let milliseconds = ping * 1000
-            result = Formatters.millisecondFormatter.string(for: milliseconds).map { ($0, "ms") }
-        }
+        let formattedPing = Formatters.format(ping: ping)
 
-        if let result = result {
+        if let formattedPing = formattedPing {
             return Group {
-                Text(result.value).font(.title) +
-                    Text(result.unit)
+                Text(formattedPing.value).font(.title) +
+                    Text(formattedPing.unit)
             }
         } else {
             return Group {
                 Text("N/A").font(.title)
             }
         }
-    }
-}
-
-struct ArcProgressBar: View {
-    var value: Double
-    var limit: Double
-
-    var body: some View {
-        ZStack {
-            Text(Formatters.speedFormatter.string(from: NSNumber(value: value)) ?? "0.0")
-                .font(.system(size: 20))
-
-            ZStack {
-                Path { path in
-                    path.addArc(center: CGPoint(x: 56, y: 44), radius: 50, startAngle: .degrees(130), endAngle: .degrees(50), clockwise: false)
-                }.stroke(Color(white: 0.8), style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
-                    .frame(width: 112, height: 80, alignment: .center)
-
-                Path { path in
-                    path.addArc(center: CGPoint(x: 56, y: 44), radius: 50, startAngle: .degrees(130), endAngle: .degrees(getProgressEndAngle()), clockwise: false)
-                }.stroke(Color.blue, style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
-                    .frame(width: 112, height: 80, alignment: .center)
-                    .animation(.easeIn)
-            }
-        }
-    }
-
-    private func getProgressEndAngle() -> Double {
-        // 130° -> 360° -> 50°
-        let maxAngle: Double = 280
-        let trimmedValue = min(value, limit)
-        return trimmedValue / limit * maxAngle + 130
     }
 }

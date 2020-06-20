@@ -1,43 +1,47 @@
 //
-//  PingViewModel.swift
+//  PingModel.swift
 //  librespeed-ios
 //
-//  Created by Matyáš Kříž on 13/04/2020.
+//  Created by Matyáš Kříž on 20/06/2020.
 //  Copyright © 2020 Example. All rights reserved.
 //
 
 import Foundation
+import Combine
 
-final class PingViewModel: NSObject, ObservableObject {
-    @Published
-    private(set) var ping = 0.0
-    @Published
-    private(set) var jitter = 0.0
+final class PingModel: NSObject, ObservableObject {
+    typealias Values = (ping: Double, jitter: Double)
 
+    private var attempts = 0
     private var attempt = 1
-
-    private var completionHandler: (() -> Void)?
 
     private var start: TimeInterval!
 
     private var session: URLSession!
-    private var url: URL!
     private var task: URLSessionDataTask!
 
     private let queue = OperationQueue()
 
-    func startTest(completionHandler: (() -> Void)? = nil) throws {
-        ping = 0
-        jitter = 0
+    private let pingSubject = CurrentValueSubject<Values, PingTestError>((ping: 0, jitter: 0))
+
+    private let url: URL
+
+    init(url: URL) {
+        self.url = url
+    }
+
+    func startTest(attempts: Int?) -> AnyPublisher<Values, PingTestError> {
+        // Reset the values.
+        pingSubject.send((ping: 0, jitter: 0))
+
+        self.attempts = attempts ?? Constants.Ping.attempts
         attempt = 1
 
-        self.completionHandler = completionHandler
-
         session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: queue)
-        guard let url = URL(string: "https://fi.openspeed.org/empty.php") else { throw PingTestError.invalidUrl }
-        self.url = url
 
         pingServer()
+
+        return pingSubject.eraseToAnyPublisher()
     }
 
     private func pingServer() {
@@ -50,6 +54,8 @@ final class PingViewModel: NSObject, ObservableObject {
 
     private func updateValues() {
         let timeElapsed = Date.timeIntervalSinceReferenceDate - self.start
+        let ping = pingSubject.value.ping
+        let jitter = pingSubject.value.jitter
 
         let newJitter: Double
         if ping == 0 {
@@ -61,34 +67,31 @@ final class PingViewModel: NSObject, ObservableObject {
             newJitter = jitter * priority.old + difference * priority.new
         }
 
-        DispatchQueue.main.async {
-            self.ping = timeElapsed
-            self.jitter = newJitter
-        }
+        pingSubject.send((ping: timeElapsed, jitter: newJitter))
     }
 }
 
-extension PingViewModel: URLSessionDataDelegate {
+extension PingModel: URLSessionDataDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let error = error {
             print(error.localizedDescription)
+            pingSubject.send(completion: .failure(.unknown))
         } else {
             updateValues()
-            if attempt >= Constants.Ping.attempts {
-                completionHandler?()
-            } else {
+            if attempt < attempts {
                 attempt += 1
                 DispatchQueue.global(qos: .userInteractive).asyncAfter(deadline: .now() + Constants.Ping.requestPadding) {
                     self.pingServer()
                 }
+            } else {
+                pingSubject.send(completion: .finished)
             }
         }
     }
 }
 
-extension PingViewModel {
+extension PingModel {
     enum PingTestError: Error {
         case unknown
-        case invalidUrl
     }
 }

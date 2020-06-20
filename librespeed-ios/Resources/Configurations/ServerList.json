@@ -1,0 +1,12 @@
+[
+  {
+    "name":"Helsinki, Finland",
+    "host":"https://fi.openspeed.org",
+    "paths": {
+        "download":"garbage.php",
+        "upload":"empty.php",
+        "ping":"empty.php",
+        "ip":"getIP.php"
+    }
+  }
+]

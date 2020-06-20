@@ -8,43 +8,81 @@
 
 import SwiftUI
 
-struct ServerSelectView: View {
-    @State private var server = "gg"
+struct ServerItemView: View {
+    @ObservedObject
+    private var viewModel: ServerListItemViewModel
+
+    init(viewModel: ServerListItemViewModel) {
+        self.viewModel = viewModel
+    }
 
     var body: some View {
-        VStack {
-            Spacer()
+        Text(viewModel.description)
+    }
+}
 
-            Text("Choose a server.")
-                .font(.largeTitle)
+struct ServerActionView: View {
+    private var viewModel: ServerListItemViewModel?
 
-            Picker("Server selection", selection: $server) {
-                ForEach(["Helsinki, Vaanguard (50ms)", "dudazura mam (222ms)", "Prague, Czehicia (2ms)", "Slovanskkia, Bratko (45ms)"], id: \.description) {
-                    Text($0)
-                }
-            }.labelsHidden()
+    init(viewModel: ServerListItemViewModel?) {
+        self.viewModel = viewModel
+    }
 
-            Button(action: startTest) {
-                Text("Start Test")
-                    .bold()
-            }.padding()
+    var body: some View {
+        NavigationLink(destination: viewModel?.testDestination()) {
+            Text("Start Test")
+                .bold()
+        }
+        .padding()
+        .disabled(viewModel == nil)
+    }
+}
 
-            Spacer()
-            Spacer()
+struct ServerSelectView: View {
+    @State
+    private var selectedServer: ServerListItemViewModel? = nil
 
-            Button(action: showPrivacyPolicy) {
-                Text("Privacy Policy")
-                    .foregroundColor(.gray)
-                    .font(.footnote)
-            }.padding()
+    @ObservedObject
+    private var viewModel: ServerListViewModel
+
+    private let lifetimeCancelBag = CancelBag()
+
+    init(viewModel: ServerListViewModel) {
+        self.viewModel = viewModel
+    }
+
+    var body: some View {
+        return NavigationView {
+            VStack {
+                Spacer()
+
+                Text("Choose a server.")
+                    .font(.largeTitle)
+
+                Picker("Server selection", selection: $selectedServer) {
+                    ForEach(viewModel.serverList, id: \.description) {
+                        ServerItemView(viewModel: $0).tag($0 as ServerListItemViewModel?)
+                    }
+                }.labelsHidden().id(viewModel.incrementingWorkaroundForPicker)
+
+                Spacer()
+
+                ServerActionView(viewModel: selectedServer ?? viewModel.serverList.first)
+
+                Spacer()
+                Spacer()
+                Spacer()
+
+                Button(action: showPrivacyPolicy) {
+                    Text("Privacy Policy")
+                        .foregroundColor(.gray)
+                        .font(.footnote)
+                }.padding()
+            }
         }
     }
 
     private func showPrivacyPolicy() {
-
-    }
-
-    private func startTest() {
-
+        
     }
 }

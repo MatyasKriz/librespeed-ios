@@ -13,7 +13,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        let initialView = TestView()
+        let serverService = ServerService(serverRepository: ServerRepository())
+        let viewModel = ServerListViewModel(
+            serverService: serverService,
+            testDestination: { TestView(viewModel: TestViewModel(serverModel: $0)) }
+        )
+        let initialView = ServerSelectView(viewModel: viewModel)
 
         // Use a UIHostingController as window root view controller.
         if let windowScene = scene as? UIWindowScene {
