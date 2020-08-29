@@ -13,7 +13,7 @@ struct Constants {
     static let overheadCompensationFactor = 1.06
 
     struct Download {
-        static let size = 30
+        static let size = 50
     }
 
     struct Upload {
