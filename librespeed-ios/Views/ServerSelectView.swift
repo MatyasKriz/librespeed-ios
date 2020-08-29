@@ -45,10 +45,19 @@ struct ServerSelectView: View {
     @ObservedObject
     private var viewModel: ServerListViewModel
 
+    private let privacyPolicyHtml: String?
+
     private let lifetimeCancelBag = CancelBag()
 
     init(viewModel: ServerListViewModel) {
         self.viewModel = viewModel
+
+        if let privacyPolicyUrl = Bundle.main.url(forResource: "privacy_en", withExtension: "html") {
+            let fileData = try? Data(contentsOf: privacyPolicyUrl, options: .mappedIfSafe)
+            privacyPolicyHtml = fileData.map { String(data: $0, encoding: .utf8) } ?? nil
+        } else {
+            privacyPolicyHtml = nil
+        }
     }
 
     var body: some View {
@@ -73,16 +82,16 @@ struct ServerSelectView: View {
                 Spacer()
                 Spacer()
 
-                Button(action: showPrivacyPolicy) {
-                    Text("Privacy Policy")
-                        .foregroundColor(.gray)
-                        .font(.footnote)
-                }.padding()
+                privacyPolicyHtml.map {
+                    NavigationLink(
+                        destination: HTMLStringView(htmlContent: $0).navigationBarTitle("Privacy Policy", displayMode: .inline)
+                    ) {
+                        Text("Privacy Policy")
+                            .foregroundColor(.gray)
+                            .font(.footnote)
+                    }.padding()
+                }
             }
         }
-    }
-
-    private func showPrivacyPolicy() {
-        
     }
 }
