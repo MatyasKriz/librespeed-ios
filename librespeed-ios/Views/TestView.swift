@@ -37,10 +37,14 @@ struct TestView: View {
 
             HStack(alignment: .top, spacing: 44) {
                 VStack {
+                    Text("Download")
+                    Spacer(minLength: 16)
                     ArcProgressBar(value: viewModel.download, limit: viewModel.downloadLimit)
                     Text("Mbps").font(.system(size: 20))
                 }
                 VStack {
+                    Text("Upload")
+                    Spacer(minLength: 16)
                     ArcProgressBar(value: viewModel.upload, limit: viewModel.uploadLimit)
                     Text("Mbps").font(.system(size: 20))
                 }
