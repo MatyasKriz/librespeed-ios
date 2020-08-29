@@ -30,6 +30,7 @@ final class TestViewModel: ObservableObject {
 
     private let serverModel: ServerModel
 
+    private var testCancelBag = CancelBag()
     private let lifetimeCancelBag = CancelBag()
 
     init(serverModel: ServerModel) {
@@ -57,12 +58,16 @@ final class TestViewModel: ObservableObject {
     }
 
     func test() {
+        testCancelBag = CancelBag()
+
+        serverModel.reset()
+
         serverModel.testPing()
             .append(
                 self.serverModel.testDownload()
                     .append(self.serverModel.testUpload())
             )
             .sink(receiveCompletion: { _ in }, receiveValue: { _ in })
-            .cancelled(by: lifetimeCancelBag)
+            .cancelled(by: testCancelBag)
     }
 }

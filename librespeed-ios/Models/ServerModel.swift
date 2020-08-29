@@ -42,23 +42,32 @@ final class ServerModel: NSObject, ObservableObject {
         self.paths = paths
     }
 
+    func reset() {
+        download = 0
+        upload = 0
+        ping = 0
+        jitter = 0
+    }
+
     func testDownload() -> AnyPublisher<Void, Error> {
         return Deferred<AnyPublisher<Void, Error>> { [weak self] in
             guard let self = self else { return Empty().eraseToAnyPublisher() }
 
-            self.downloadCancelBag = CancelBag()
-
             let subject = PassthroughSubject<Void, Error>()
-
-            DownloadModel(url: self.paths.download)
-                .startTest()
-                .sink(
-                    receiveCompletion: { _ in subject.send(completion: .finished) },
-                    receiveValue: { [weak self] in self?.download = $0 }
-                )
-                .cancelled(by: self.downloadCancelBag)
-
-            return subject.eraseToAnyPublisher()
+            var cancellable: Cancellable?
+            return subject.handleEvents(
+                receiveSubscription: { _ in
+                    cancellable = DownloadModel(url: self.paths.download)
+                        .startTest()
+                        .sink(
+                            receiveCompletion: { _ in subject.send(completion: .finished) },
+                            receiveValue: { [weak self] in self?.download = $0 }
+                        )
+                },
+                receiveCancel: {
+                    cancellable?.cancel()
+                }
+            ).eraseToAnyPublisher()
         }.eraseToAnyPublisher()
     }
 
@@ -66,19 +75,21 @@ final class ServerModel: NSObject, ObservableObject {
         return Deferred<AnyPublisher<Void, Error>> { [weak self] in
             guard let self = self else { return Empty().eraseToAnyPublisher() }
 
-            self.uploadCancelBag = CancelBag()
-
             let subject = PassthroughSubject<Void, Error>()
-
-            UploadModel(url: self.paths.upload)
-                .startTest()
-                .sink(
-                    receiveCompletion: { _ in subject.send(completion: .finished) },
-                    receiveValue: { [weak self] in self?.upload = $0 }
-                )
-                .cancelled(by: self.uploadCancelBag)
-
-            return subject.eraseToAnyPublisher()
+            var cancellable: Cancellable?
+            return subject.handleEvents(
+                receiveSubscription: { _ in
+                    cancellable = UploadModel(url: self.paths.upload)
+                        .startTest()
+                        .sink(
+                            receiveCompletion: { _ in subject.send(completion: .finished) },
+                            receiveValue: { [weak self] in self?.upload = $0 }
+                        )
+                },
+                receiveCancel: {
+                    cancellable?.cancel()
+                }
+            ).eraseToAnyPublisher()
         }.eraseToAnyPublisher()
     }
 
@@ -86,22 +97,24 @@ final class ServerModel: NSObject, ObservableObject {
         return Deferred<AnyPublisher<Void, Error>> { [weak self] in
             guard let self = self else { return Empty().eraseToAnyPublisher() }
 
-            self.pingCancelBag = CancelBag()
-
             let subject = PassthroughSubject<Void, Error>()
-
-            PingModel(url: self.paths.ping)
-                .startTest(attempts: attempts)
-                .sink(
-                    receiveCompletion: { _ in subject.send(completion: .finished) },
-                    receiveValue: { [weak self] ping, jitter in
-                        self?.ping = ping
-                        self?.jitter = jitter
-                    }
-                )
-                .cancelled(by: self.pingCancelBag)
-
-            return subject.eraseToAnyPublisher()
+            var cancellable: Cancellable?
+            return subject.handleEvents(
+                receiveSubscription: { _ in
+                    cancellable = PingModel(url: self.paths.ping)
+                        .startTest(attempts: attempts)
+                        .sink(
+                            receiveCompletion: { _ in subject.send(completion: .finished) },
+                            receiveValue: { [weak self] ping, jitter in
+                                self?.ping = ping
+                                self?.jitter = jitter
+                            }
+                        )
+                },
+                receiveCancel: {
+                    cancellable?.cancel()
+                }
+            ).eraseToAnyPublisher()
         }.eraseToAnyPublisher()
     }
 
